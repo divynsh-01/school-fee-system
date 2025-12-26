@@ -11,7 +11,7 @@ import StudentDetails from './pages/StudentDetails';
 
 // --- CONFIGURATION (Place this AFTER all imports) ---
 // PASTE YOUR REAL BACKEND URL HERE (e.g., https://school-fee-backend.vercel.app)
-axios.defaults.baseURL = "https://your-backend-project.vercel.app"; 
+axios.defaults.baseURL = "https://school-fee-system.vercel.app"; 
 // ----------------------------------------------------
 
 function App() {
