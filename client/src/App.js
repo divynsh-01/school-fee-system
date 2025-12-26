@@ -1,6 +1,12 @@
 // client/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import axios from 'axios'; // <--- IMPORT AXIOS
+
+// --- CONFIGURATION ---
+// PASTE YOUR VERCEL BACKEND URL HERE inside the quotes
+axios.defaults.baseURL = "https://school-fee-system.vercel.app/"; 
+// ---------------------
 
 // Import all the pages we created
 import Login from './pages/Login';
@@ -20,11 +26,9 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
 
           {/* 3. Class Details (View Students in a specific class) */}
-          {/* ':id' allows us to grab the specific class ID from the URL */}
           <Route path="/class/:id" element={<ClassDetails />} />
 
           {/* 4. Student Details (View & Update Fees) */}
-          {/* ':id' allows us to grab the specific student ID */}
           <Route path="/student/:id" element={<StudentDetails />} />
         </Routes>
       </div>
