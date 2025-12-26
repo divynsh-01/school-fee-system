@@ -1,9 +1,8 @@
-// client/src/pages/StudentDetails.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaArrowLeft, FaMoneyBillWave, FaPen, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaMoneyBillWave, FaPen, FaCheckCircle, FaExclamationCircle, FaHistory } from 'react-icons/fa';
 
 const StudentDetails = () => {
     const { id } = useParams();
@@ -14,36 +13,40 @@ const StudentDetails = () => {
     const [isEditingTotal, setIsEditingTotal] = useState(false);
     const [newTotalFee, setNewTotalFee] = useState("");
 
+    // Fetch Data
+    const fetchStudent = async () => {
+        try {
+            const res = await axios.get(`/api/student/${id}`);
+            setStudent(res.data);
+            setNewTotalFee(res.data.totalFees);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     useEffect(() => {
-        const fetchStudent = async () => {
-            try {
-                const res = await axios.get(`/api/student/${id}`);
-                setStudent(res.data);
-                setNewTotalFee(res.data.totalFees);
-            } catch (err) {
-                console.error(err);
-            }
-        };
         fetchStudent();
     }, [id]);
 
+    // Handle Payment (Updated to support History)
     const handleAddPayment = async () => {
         if (!amountToAdd || amountToAdd <= 0) return alert("Enter valid amount");
         try {
-            const newPaid = student.feesPaid + parseInt(amountToAdd);
-            const res = await axios.put(`/api/student/${id}`, { feesPaid: newPaid });
+            // We now send 'paymentAmount' instead of calculating the total ourselves
+            const res = await axios.put(`/api/student/${id}`, { paymentAmount: amountToAdd });
             setStudent(res.data);
             setAmountToAdd("");
-            alert("Payment Recorded!");
-        } catch (err) { alert("Error"); }
+            alert("Payment Recorded Successfully!");
+        } catch (err) { alert("Error recording payment"); }
     };
 
+    // Handle Total Fee Update
     const handleUpdateTotal = async () => {
         try {
             const res = await axios.put(`/api/student/${id}`, { totalFees: newTotalFee });
             setStudent(res.data);
             setIsEditingTotal(false);
-        } catch (err) { alert("Error"); }
+        } catch (err) { alert("Error updating total"); }
     };
 
     if (!student) return <p style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Loading...</p>;
@@ -66,6 +69,7 @@ const StudentDetails = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
             >
+                {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '20px', marginBottom: '20px' }}>
                     <div>
                         <h1 style={{ margin: 0 }}>{student.name}</h1>
@@ -78,7 +82,8 @@ const StudentDetails = () => {
 
                 {/* Stats Row */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
-                    {/* Total Fee Box */}
+                    
+                    {/* Total Fee */}
                     <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(255,255,255,0.15)', textAlign: 'center', padding: '20px' }}>
                         <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Total Fee</p>
                         {isEditingTotal ? (
@@ -94,14 +99,14 @@ const StudentDetails = () => {
                         )}
                     </motion.div>
 
-                    {/* Paid Box */}
+                    {/* Paid */}
                     <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(74, 222, 128, 0.2)', borderColor: '#4ade80', textAlign: 'center', padding: '20px' }}>
                         <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Paid</p>
                         <h2 style={{ margin: 0, color: '#bbf7d0' }}>₹{student.feesPaid}</h2>
                         <FaCheckCircle style={{ marginTop: '10px', color: '#bbf7d0' }} />
                     </motion.div>
 
-                    {/* Remaining Box */}
+                    {/* Remaining */}
                     <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(248, 113, 113, 0.2)', borderColor: '#f87171', textAlign: 'center', padding: '20px' }}>
                         <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Remaining</p>
                         <h2 style={{ margin: 0, color: '#fecaca' }}>₹{remaining}</h2>
@@ -109,8 +114,8 @@ const StudentDetails = () => {
                     </motion.div>
                 </div>
 
-                {/* Payment Section */}
-                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '25px', borderRadius: '15px' }}>
+                {/* Payment Input Section */}
+                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '25px', borderRadius: '15px', marginBottom: '30px' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <FaMoneyBillWave /> Record New Payment
                     </h3>
@@ -135,6 +140,50 @@ const StudentDetails = () => {
                         </motion.button>
                     </div>
                 </div>
+
+                {/* NEW: Payment History Section */}
+                <div>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                        <FaHistory /> Payment History
+                    </h3>
+                    
+                    {student.paymentHistory && student.paymentHistory.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+                            {/* We map the history in Reverse so newest is first */}
+                            {[...student.paymentHistory].reverse().map((pay, index) => (
+                                <motion.div 
+                                    key={index}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between', 
+                                        alignItems: 'center',
+                                        background: 'rgba(255,255,255,0.05)', 
+                                        padding: '15px', 
+                                        borderRadius: '10px',
+                                        border: '1px solid rgba(255,255,255,0.1)'
+                                    }}
+                                >
+                                    <div>
+                                        <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#4ade80' }}>
+                                            + ₹{pay.amount}
+                                        </span>
+                                    </div>
+                                    <div style={{ opacity: 0.6, fontSize: '0.9rem' }}>
+                                        {new Date(pay.date).toLocaleDateString()} at {new Date(pay.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p style={{ opacity: 0.5, fontStyle: 'italic', textAlign: 'center', marginTop: '20px' }}>
+                            No payment history available.
+                        </p>
+                    )}
+                </div>
+
             </motion.div>
         </div>
     );
