@@ -1,0 +1,142 @@
+/* client/src/index.css */
+
+/* 1. GLOBAL STYLES & ANIMATED BACKGROUND */
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* The moving gradient background */
+  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  
+  min-height: 100vh;
+  color: white;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 2. GLASSMORPHISM CARD (The "Frosted Glass" Effect) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1); /* Very see-through white */
+  backdrop-filter: blur(12px);           /* The blur effect */
+  -webkit-backdrop-filter: blur(12px);   /* Safari support */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle white border */
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Deep shadow */
+  padding: 2rem;
+  color: white;
+  transition: transform 0.2s ease-in-out;
+}
+
+/* 3. MODERN INPUTS (Fixed for Icon Alignment) */
+.modern-input {
+  width: 100%;
+  /* Top: 15px, Right: 15px, Bottom: 15px, Left: 50px (Space for Icon) */
+  padding: 15px 15px 15px 50px; 
+  margin: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  outline: none;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  box-sizing: border-box; /* IMPORTANT: Keeps width correct with padding */
+}
+
+.modern-input::placeholder {
+  color: rgba(255, 255, 255, 0.7); /* Lighter white for placeholder */
+}
+
+.modern-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Glow effect */
+}
+
+/* 4. BUTTONS */
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  /* Beautiful Sunset Gradient */
+  background: linear-gradient(90deg, #ff8a00, #e52e71);
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(229, 46, 113, 0.4);
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(229, 46, 113, 0.6);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* 5. TEXT STYLES */
+h1, h2, h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+p {
+  line-height: 1.6;
+}
+
+.link-text {
+  color: #ffe600; /* Gold color for links */
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.link-text:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* 6. SCROLLBAR (Optional: Makes scrollbar look nice) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1); 
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3); 
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5); 
+}
