@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaArrowLeft, FaUserPlus, FaEdit, FaUserGraduate } from 'react-icons/fa';
+import { FaArrowLeft, FaUserPlus, FaEdit, FaUserGraduate, FaTrash } from 'react-icons/fa'; // Import Trash
 
 const ClassDetails = () => {
     const { id } = useParams();
@@ -40,6 +40,19 @@ const ClassDetails = () => {
             fetchStudents();
         } catch (err) {
             alert("Error adding student");
+        }
+    };
+
+    // --- NEW: DELETE FUNCTION ---
+    const handleDeleteStudent = async (studentId) => {
+        if (window.confirm("Are you sure you want to delete this student permanently?")) {
+            try {
+                await axios.delete(`/api/student/${studentId}`);
+                // Remove student from UI immediately without refreshing
+                setStudents(students.filter(std => std._id !== studentId));
+            } catch (err) {
+                alert("Error deleting student");
+            }
         }
     };
 
@@ -97,14 +110,14 @@ const ClassDetails = () => {
                         animate="visible"
                         style={{ display: 'grid', gap: '10px', padding: '20px' }}
                     >
-                        {/* Header Row (Hidden on mobile, visible on desktop) */}
+                        {/* Header Row */}
                         <div style={{ display: 'grid', gridTemplateColumns: '0.5fr 1.5fr 1fr 1fr 1fr 1fr', fontWeight: 'bold', padding: '10px', color: '#ffe600' }}>
                             <span>Roll</span>
                             <span>Name</span>
                             <span>Total</span>
                             <span>Paid</span>
                             <span>Remaining</span>
-                            <span>Action</span>
+                            <span>Actions</span>
                         </div>
 
                         {/* Animated Rows */}
@@ -127,13 +140,28 @@ const ClassDetails = () => {
                                 <span>₹{std.totalFees}</span>
                                 <span style={{ color: '#4ade80' }}>₹{std.feesPaid}</span>
                                 <span style={{ color: '#f87171' }}>₹{std.remainingFees}</span>
-                                <button 
-                                    className="btn-secondary"
-                                    onClick={() => navigate(`/student/${std._id}`)}
-                                    style={{ background: 'rgba(255, 255, 255, 0.2)', fontSize: '0.9rem' }}
-                                >
-                                    <FaEdit /> details
-                                </button>
+                                
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    {/* Edit / View Button */}
+                                    <button 
+                                        className="btn-secondary"
+                                        onClick={() => navigate(`/student/${std._id}`)}
+                                        style={{ background: 'rgba(255, 255, 255, 0.2)', fontSize: '0.9rem', padding: '8px' }}
+                                        title="View Details"
+                                    >
+                                        <FaEdit />
+                                    </button>
+
+                                    {/* DELETE Button */}
+                                    <button 
+                                        className="btn-secondary"
+                                        onClick={() => handleDeleteStudent(std._id)}
+                                        style={{ background: 'rgba(255, 0, 0, 0.2)', color: '#ff6b6b', fontSize: '0.9rem', padding: '8px' }}
+                                        title="Delete Student"
+                                    >
+                                        <FaTrash />
+                                    </button>
+                                </div>
                             </motion.div>
                         ))}
                     </motion.div>
