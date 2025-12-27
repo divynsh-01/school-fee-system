@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaArrowLeft, FaMoneyBillWave, FaPen, FaCheckCircle, FaExclamationCircle, FaHistory } from 'react-icons/fa';
+import { FaArrowLeft, FaMoneyBillWave, FaPen, FaCheckCircle, FaExclamationCircle, FaHistory, FaTrophy } from 'react-icons/fa';
 
 const StudentDetails = () => {
     const { id } = useParams();
@@ -13,7 +13,6 @@ const StudentDetails = () => {
     const [isEditingTotal, setIsEditingTotal] = useState(false);
     const [newTotalFee, setNewTotalFee] = useState("");
 
-    // --- FIX: Wrap fetchStudent in useCallback to stabilize it ---
     const fetchStudent = useCallback(async () => {
         try {
             const res = await axios.get(`/api/student/${id}`);
@@ -22,16 +21,23 @@ const StudentDetails = () => {
         } catch (err) {
             console.error(err);
         }
-    }, [id]); // Only recreate this function if 'id' changes
+    }, [id]);
 
-    // Now we can safely include fetchStudent in the dependency array
     useEffect(() => {
         fetchStudent();
     }, [fetchStudent]);
 
     // Handle Payment
     const handleAddPayment = async () => {
+        // 1. Validation: Check for empty or negative
         if (!amountToAdd || amountToAdd <= 0) return alert("Enter valid amount");
+
+        // 2. Validation: Check for Overpayment
+        const currentRemaining = student.totalFees - student.feesPaid;
+        if (Number(amountToAdd) > currentRemaining) {
+            return alert(`Error: You cannot pay more than the remaining amount (₹${currentRemaining})`);
+        }
+
         try {
             const res = await axios.put(`/api/student/${id}`, { paymentAmount: amountToAdd });
             setStudent(res.data);
@@ -40,7 +46,6 @@ const StudentDetails = () => {
         } catch (err) { alert("Error recording payment"); }
     };
 
-    // Handle Total Fee Update
     const handleUpdateTotal = async () => {
         try {
             const res = await axios.put(`/api/student/${id}`, { totalFees: newTotalFee });
@@ -49,7 +54,6 @@ const StudentDetails = () => {
         } catch (err) { alert("Error updating total"); }
     };
 
-    // --- LOADING SPINNER ---
     if (!student) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
             <div className="spinner" style={{ borderTopColor: '#2563eb', borderColor: '#dbeafe' }}></div>
@@ -57,6 +61,7 @@ const StudentDetails = () => {
     );
 
     const remaining = student.totalFees - student.feesPaid;
+    const isFullyPaid = remaining <= 0;
 
     return (
         <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
@@ -113,38 +118,48 @@ const StudentDetails = () => {
                     </motion.div>
 
                     {/* Remaining */}
-                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: '#fef2f2', borderColor: '#fca5a5', textAlign: 'center', padding: '20px' }}>
-                        <p style={{ fontSize: '0.9rem', opacity: 0.8, color: '#991b1b' }}>Remaining</p>
-                        <h2 style={{ margin: 0, color: '#dc2626' }}>₹{remaining}</h2>
-                        <FaExclamationCircle style={{ marginTop: '10px', color: '#dc2626' }} />
+                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: isFullyPaid ? '#ecfdf5' : '#fef2f2', borderColor: isFullyPaid ? '#6ee7b7' : '#fca5a5', textAlign: 'center', padding: '20px' }}>
+                        <p style={{ fontSize: '0.9rem', opacity: 0.8, color: isFullyPaid ? '#065f46' : '#991b1b' }}>Remaining</p>
+                        <h2 style={{ margin: 0, color: isFullyPaid ? '#059669' : '#dc2626' }}>₹{remaining}</h2>
+                        {isFullyPaid ? <FaCheckCircle style={{marginTop:'10px', color:'#059669'}}/> : <FaExclamationCircle style={{ marginTop: '10px', color: '#dc2626' }} />}
                     </motion.div>
                 </div>
 
-                {/* Payment Input Section */}
+                {/* Payment Input Section OR "Fully Paid" Message */}
                 <div style={{ background: '#f3f4f6', padding: '25px', borderRadius: '15px', marginBottom: '30px' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <FaMoneyBillWave /> Record New Payment
-                    </h3>
-                    <p style={{ opacity: 0.7, marginBottom: '15px' }}>Enter the amount received physically (Cash/UPI)</p>
-                    
-                    <div style={{ display: 'flex', gap: '15px' }}>
-                        <input 
-                            className="modern-input" 
-                            type="number" 
-                            placeholder="Amount (e.g. 500)" 
-                            value={amountToAdd}
-                            onChange={(e) => setAmountToAdd(e.target.value)}
-                            style={{ margin: 0 }}
-                        />
-                        <motion.button 
-                            whileTap={{ scale: 0.95 }}
-                            onClick={handleAddPayment} 
-                            className="btn-primary"
-                            style={{ width: 'auto', whiteSpace: 'nowrap' }}
-                        >
-                            Update Record
-                        </motion.button>
-                    </div>
+                    {isFullyPaid ? (
+                        <div style={{ textAlign: 'center', color: '#059669', padding: '10px' }}>
+                            <FaTrophy style={{ fontSize: '3rem', marginBottom: '10px' }} />
+                            <h2 style={{ margin: 0 }}>No Dues Left!</h2>
+                            <p style={{ margin: '5px 0 0 0', opacity: 0.8 }}>This student has fully paid their fees.</p>
+                        </div>
+                    ) : (
+                        <>
+                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <FaMoneyBillWave /> Record New Payment
+                            </h3>
+                            <p style={{ opacity: 0.7, marginBottom: '15px' }}>Enter the amount received physically (Cash/UPI)</p>
+                            
+                            <div style={{ display: 'flex', gap: '15px' }}>
+                                <input 
+                                    className="modern-input" 
+                                    type="number" 
+                                    placeholder={`Max: ₹${remaining}`} 
+                                    value={amountToAdd}
+                                    onChange={(e) => setAmountToAdd(e.target.value)}
+                                    style={{ margin: 0 }}
+                                />
+                                <motion.button 
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={handleAddPayment} 
+                                    className="btn-primary"
+                                    style={{ width: 'auto', whiteSpace: 'nowrap' }}
+                                >
+                                    Update Record
+                                </motion.button>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Payment History Section */}
