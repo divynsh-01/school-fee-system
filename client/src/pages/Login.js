@@ -7,6 +7,7 @@ import { FaUser, FaLock, FaEnvelope } from 'react-icons/fa';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
+    const [loading, setLoading] = useState(false); // <--- NEW: Loading State
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -14,9 +15,12 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // <--- Start Loading
+        
         try {
             const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
             const payload = isLogin ? { email, password } : { name, email, password, role: 'admin' };
+            
             const res = await axios.post(endpoint, payload);
             
             if (isLogin) {
@@ -26,21 +30,23 @@ const Login = () => {
             } else {
                 alert("Registration Successful! Please Login.");
                 setIsLogin(true);
+                setLoading(false); // Stop loading if just registering
             }
         } catch (err) {
             alert(err.response?.data?.message || "Something went wrong");
+            setLoading(false); // Stop loading on error
         }
     };
 
-    // --- NEW ICON STYLE FOR PERFECT CENTERING ---
+    // --- ICON STYLE ---
     const iconStyle = { 
         position: 'absolute', 
         top: '50%', 
         transform: 'translateY(-50%)', 
         left: '18px', 
-        color: 'rgba(255,255,255,0.8)',
+        color: '#9ca3af', // Updated color to match new theme
         fontSize: '1.1rem',
-        pointerEvents: 'none' // Prevents icon from blocking clicks
+        pointerEvents: 'none' 
     };
 
     const inputWrapperStyle = { position: 'relative', width: '100%' };
@@ -66,31 +72,32 @@ const Login = () => {
                     {!isLogin && (
                         <div style={inputWrapperStyle}>
                             <FaUser style={iconStyle} />
-                            {/* Padding is now handled in CSS class */}
-                            <input className="modern-input" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
+                            <input className="modern-input" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
                         </div>
                     )}
                     <div style={inputWrapperStyle}>
                         <FaEnvelope style={iconStyle} />
-                        <input className="modern-input" placeholder="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <input className="modern-input" placeholder="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                     </div>
                     <div style={inputWrapperStyle}>
                         <FaLock style={iconStyle} />
-                        <input className="modern-input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                        <input className="modern-input" placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                     </div>
 
                     <motion.button 
-                        whileHover={{ scale: 1.03 }} 
-                        whileTap={{ scale: 0.98 }} 
+                        whileHover={!loading ? { scale: 1.03 } : {}} 
+                        whileTap={!loading ? { scale: 0.98 } : {}} 
                         className="btn-primary" 
                         type="submit"
-                        style={{ marginTop: '10px', padding: '15px' }}
+                        disabled={loading} // Disable button while loading
+                        style={{ marginTop: '10px', padding: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
                     >
-                        {isLogin ? "Login" : "Sign Up"}
+                        {/* Show Spinner if loading, else show Text */}
+                        {loading ? <div className="spinner"></div> : (isLogin ? "Login" : "Sign Up")}
                     </motion.button>
                 </form>
 
-                <p className="link-text" onClick={() => setIsLogin(!isLogin)} style={{ marginTop: '20px', fontSize: '0.9rem', opacity: 0.9 }}>
+                <p className="link-text" onClick={() => !loading && setIsLogin(!isLogin)} style={{ marginTop: '20px', fontSize: '0.9rem', opacity: 0.9, cursor: loading ? 'default' : 'pointer' }}>
                     {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
                 </p>
             </motion.div>

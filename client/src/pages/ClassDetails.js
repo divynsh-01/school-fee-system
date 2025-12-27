@@ -100,7 +100,7 @@ const ClassDetails = () => {
             {/* Student List */}
             <div className="glass-card" style={{ padding: '0' }}>
                 <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                    <h3 style={{ margin: 0 }}><FaUserGraduate /> Student List ({students.length})</h3>
+                    <h3 style={{ margin: 0 }}><FaUserGraduate /> Students List ({students.length})</h3>
                 </div>
                 
                 {loading ? <p style={{ padding: '20px' }}>Loading...</p> : (

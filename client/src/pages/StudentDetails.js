@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -13,8 +13,8 @@ const StudentDetails = () => {
     const [isEditingTotal, setIsEditingTotal] = useState(false);
     const [newTotalFee, setNewTotalFee] = useState("");
 
-    // Fetch Data
-    const fetchStudent = async () => {
+    // --- FIX: Wrap fetchStudent in useCallback to stabilize it ---
+    const fetchStudent = useCallback(async () => {
         try {
             const res = await axios.get(`/api/student/${id}`);
             setStudent(res.data);
@@ -22,17 +22,17 @@ const StudentDetails = () => {
         } catch (err) {
             console.error(err);
         }
-    };
+    }, [id]); // Only recreate this function if 'id' changes
 
+    // Now we can safely include fetchStudent in the dependency array
     useEffect(() => {
         fetchStudent();
-    }, [id]);
+    }, [fetchStudent]);
 
-    // Handle Payment (Updated to support History)
+    // Handle Payment
     const handleAddPayment = async () => {
         if (!amountToAdd || amountToAdd <= 0) return alert("Enter valid amount");
         try {
-            // We now send 'paymentAmount' instead of calculating the total ourselves
             const res = await axios.put(`/api/student/${id}`, { paymentAmount: amountToAdd });
             setStudent(res.data);
             setAmountToAdd("");
@@ -49,7 +49,13 @@ const StudentDetails = () => {
         } catch (err) { alert("Error updating total"); }
     };
 
-    if (!student) return <p style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>Loading...</p>;
+    // --- LOADING SPINNER ---
+    if (!student) return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+            <div className="spinner" style={{ borderTopColor: '#2563eb', borderColor: '#dbeafe' }}></div>
+        </div>
+    );
+
     const remaining = student.totalFees - student.feesPaid;
 
     return (
@@ -70,7 +76,7 @@ const StudentDetails = () => {
                 transition={{ duration: 0.5 }}
             >
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '20px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '20px', marginBottom: '20px' }}>
                     <div>
                         <h1 style={{ margin: 0 }}>{student.name}</h1>
                         <p style={{ opacity: 0.8, marginTop: '5px' }}>Roll Number: {student.rollNum}</p>
@@ -84,7 +90,7 @@ const StudentDetails = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', marginBottom: '40px' }}>
                     
                     {/* Total Fee */}
-                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(255,255,255,0.15)', textAlign: 'center', padding: '20px' }}>
+                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: '#f9fafb', textAlign: 'center', padding: '20px' }}>
                         <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Total Fee</p>
                         {isEditingTotal ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -100,22 +106,22 @@ const StudentDetails = () => {
                     </motion.div>
 
                     {/* Paid */}
-                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(74, 222, 128, 0.2)', borderColor: '#4ade80', textAlign: 'center', padding: '20px' }}>
-                        <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Paid</p>
-                        <h2 style={{ margin: 0, color: '#bbf7d0' }}>₹{student.feesPaid}</h2>
-                        <FaCheckCircle style={{ marginTop: '10px', color: '#bbf7d0' }} />
+                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: '#ecfdf5', borderColor: '#6ee7b7', textAlign: 'center', padding: '20px' }}>
+                        <p style={{ fontSize: '0.9rem', opacity: 0.8, color: '#065f46' }}>Paid</p>
+                        <h2 style={{ margin: 0, color: '#059669' }}>₹{student.feesPaid}</h2>
+                        <FaCheckCircle style={{ marginTop: '10px', color: '#059669' }} />
                     </motion.div>
 
                     {/* Remaining */}
-                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: 'rgba(248, 113, 113, 0.2)', borderColor: '#f87171', textAlign: 'center', padding: '20px' }}>
-                        <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>Remaining</p>
-                        <h2 style={{ margin: 0, color: '#fecaca' }}>₹{remaining}</h2>
-                        <FaExclamationCircle style={{ marginTop: '10px', color: '#fecaca' }} />
+                    <motion.div whileHover={{ y: -5 }} className="glass-card" style={{ background: '#fef2f2', borderColor: '#fca5a5', textAlign: 'center', padding: '20px' }}>
+                        <p style={{ fontSize: '0.9rem', opacity: 0.8, color: '#991b1b' }}>Remaining</p>
+                        <h2 style={{ margin: 0, color: '#dc2626' }}>₹{remaining}</h2>
+                        <FaExclamationCircle style={{ marginTop: '10px', color: '#dc2626' }} />
                     </motion.div>
                 </div>
 
                 {/* Payment Input Section */}
-                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '25px', borderRadius: '15px', marginBottom: '30px' }}>
+                <div style={{ background: '#f3f4f6', padding: '25px', borderRadius: '15px', marginBottom: '30px' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <FaMoneyBillWave /> Record New Payment
                     </h3>
@@ -141,15 +147,14 @@ const StudentDetails = () => {
                     </div>
                 </div>
 
-                {/* NEW: Payment History Section */}
+                {/* Payment History Section */}
                 <div>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px' }}>
                         <FaHistory /> Payment History
                     </h3>
                     
                     {student.paymentHistory && student.paymentHistory.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
-                            {/* We map the history in Reverse so newest is first */}
                             {[...student.paymentHistory].reverse().map((pay, index) => (
                                 <motion.div 
                                     key={index}
@@ -160,14 +165,14 @@ const StudentDetails = () => {
                                         display: 'flex', 
                                         justifyContent: 'space-between', 
                                         alignItems: 'center',
-                                        background: 'rgba(255,255,255,0.05)', 
+                                        background: '#ffffff', 
                                         padding: '15px', 
                                         borderRadius: '10px',
-                                        border: '1px solid rgba(255,255,255,0.1)'
+                                        border: '1px solid #e5e7eb'
                                     }}
                                 >
                                     <div>
-                                        <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#4ade80' }}>
+                                        <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#059669' }}>
                                             + ₹{pay.amount}
                                         </span>
                                     </div>
